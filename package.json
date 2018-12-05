@@ -4,7 +4,9 @@
   "description": "a  maze h5 game phaser ",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "webpack-dev-server --mode development --open --hot",
+    "dev": "cross-env NODE_ENV=development webpack-dev-server --open --hot ",
+    "build": "webpack --mode production --progress --hide-modules"
   },
   "repository": {
     "type": "git",
@@ -21,5 +23,19 @@
   "bugs": {
     "url": "https://github.com/czj93/phaser-maze-game-demo/issues"
   },
-  "homepage": "https://github.com/czj93/phaser-maze-game-demo#readme"
+  "homepage": "https://github.com/czj93/phaser-maze-game-demo#readme",
+  "devDependencies": {
+    "babel-core": "^6.26.3",
+    "babel-loader": "^7.1.5",
+    "babel-preset-env": "^1.7.0",
+    "clean-webpack-plugin": "^1.0.0",
+    "cross-env": "^5.2.0",
+    "html-webpack-plugin": "^3.2.0",
+    "webpack": "^4.27.0",
+    "webpack-cli": "^3.1.2",
+    "webpack-dev-server": "^3.1.10"
+  },
+  "dependencies": {
+    "phaser": "^3.15.1"
+  }
 }
