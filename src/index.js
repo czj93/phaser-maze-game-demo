@@ -1,5 +1,6 @@
-import Phaser from 'phaser';
 import Preload from './Scene/Preload'
+import Play from './Scene/Play'
+import GameOver from './Scene/GameOver'
 let game;
 
 window.onload = function(){
@@ -8,24 +9,9 @@ window.onload = function(){
         width: window.innerWidth,
         height: window.innerHeight,
         backgroundColor: 0xdddddd,
-        scene:[playGame, Preload]
+        scene:[Preload, Play, GameOver]
     })
 }
 
 
-class playGame extends Phaser.Scene{
-    constructor(){
-        super("playGame")
-    }
-    preload(){
-        console.log('preload')
-    }
-
-    create(){
-
-    }
-
-    update(){
-
-    }
-}
+export default game
