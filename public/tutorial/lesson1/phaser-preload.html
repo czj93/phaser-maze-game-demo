@@ -1,0 +1,114 @@
+<html lang="cn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Phaser3 预加载</title>
+</head>
+<body>
+    <script src="//cdn.jsdelivr.net/npm/phaser/dist/phaser.min.js"></script>
+    <script>
+        window.onload = function(){
+            var config = {
+                type: Phaser.AUTO,
+                width: 800,
+                height: 600,
+                scene: {
+                    preload: preload,
+                    create: create,
+                    update: update
+                }
+            };
+
+            var game = new Phaser.Game(config);
+            
+            function preload() {
+                var width = this.cameras.main.width,
+                    height = this.cameras.main.height; 
+
+                // 创建进度条
+                var progressBar = this.add.graphics()
+                var progressBox = this.add.graphics()
+                
+                progressBox.fillStyle(0x222222, 0.8);
+                progressBox.fillRect(240, 270, 320, 50)
+
+                // 创建文字
+                var loadingText = this.make.text({
+                    x: width/2, 
+                    y: height/2 - 50,
+                    text: '加载中...',
+                    style:{
+                        fill: '#ffffff'
+                    }
+                })
+                loadingText.setOrigin(0.5,0.5)
+                
+                // 加载百分数
+                var percentText= this.make.text({
+                    x: width /2,
+                    y: height / 2 - 5,
+                    text: '0%',
+                    style:{
+                        fill: '#ffffff'
+                    }
+                })
+                percentText.setOrigin(0.5,0.5)
+                
+                // 正在加载的资源
+                var assetText = this.make.text({
+                    x: width / 2,
+                    y: height / 2 + 50,
+                    text: '',
+                    style:{
+                        fill: '#ffffff'
+                    }
+                })
+                assetText.setOrigin(0.5,0.5)
+
+                // 加载资源
+                this.load.image('icon', './assets/icon_like.png')
+                for(var i = 0; i < 100; i++){
+                    this.load.image('icon'+i, './assets/icon_like.png')
+                }
+
+                // 绑定事件
+                this.load.on('progress', function(value){
+                    // 每次文件加载完成回调，返回一个 [0,1] 之间的小数
+                    console.log('progress:' + value)
+                    progressBar.clear()
+                    progressBar.fillStyle(0xffffff, 1)
+                    progressBar.fillRect(250,280,300 * value, 30)
+                    percentText.setText(parseInt(value*100)+'%')
+                    
+                })
+                
+                this.load.on('fileprogress', function(file){
+                    // 返回 加载文件对象
+
+                    assetText.setText('正在加载：' + file.key)
+                })
+
+                this.load.on('complete', function(){
+                    // 所有资源加载完成回调
+                    console.log('complete')
+                    progressBar.destroy()
+                    progressBox.destroy()
+                    loadingText.destroy()
+                    percentText.destroy()
+                    assetText.destroy()
+                })
+
+            }
+
+            function create() {
+                var icon = this.add.image(400, 300, 'icon').setOrigin(0.5, 0.5)
+            }
+
+            function update(){
+
+            }
+        }
+    </script>
+</body>
+</html>

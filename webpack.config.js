@@ -2,6 +2,7 @@ const path = require('path')
 const webpack = require('webpack')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const CleanWebpackPlugin = require('clean-webpack-plugin')
+const CopyWebpackPlugin = require('copy-webpack-plugin')
 
 module.exports = {
     entry: {
@@ -33,7 +34,14 @@ module.exports = {
         new webpack.ProvidePlugin({
             // 无需每个文件导入，全局直接使用Phaser
             Phaser: 'phaser',
-        })
+        }),
+        new CopyWebpackPlugin([
+            {
+                from: path.join(process.cwd(), './public/'),
+                to: path.join(process.cwd(), './dist/'),
+                ignore: ['*.json']
+            }
+        ])
     ],
     devServer: {
         contentBase: './dist'
