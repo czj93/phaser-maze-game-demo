@@ -1,6 +1,12 @@
 class GameOver extends Phaser.Scene {
     constructor(){
         super('GameOver')
+        console.log('GameOver construtor')
+    }
+
+    init(data){
+        // sence 之间数据传递
+        console.log(data)
     }
 
     preload(){

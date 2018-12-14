@@ -5,7 +5,8 @@ class Preload extends Phaser.Scene{
         super("Preload")
     }
     preload(){
-        console.log('Preload')
+        console.log('Preload this')
+        console.log(this)
     }
 
     create(){
