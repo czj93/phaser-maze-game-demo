@@ -1,0 +1,166 @@
+<html lang="cn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Phaser3 TileMap</title>
+    <link rel="stylesheet" href="../assets/css/base.css">
+</head>
+<body>
+    <script src="//cdn.jsdelivr.net/npm/phaser/dist/phaser.min.js"></script>
+    <script>
+        // 这个 demo 中存在 内存泄漏， 暂时还未找到
+        window.onload = function(){
+            var width = document.documentElement.clientWidth > 600 ? 600 : document.documentElement.clientWidth,
+                height = document.documentElement.clientHeight > 800 ? 800 : document.documentElement.clientHeight;
+            var config = {
+                type: Phaser.AUTO,
+                width: document.documentElement.clientWidth,
+                height: document.documentElement.clientHeight,
+                // pixelArt: true,
+                physics: {
+                    default: 'arcade',
+                    arcade:{ gravity: { y: 0 } }
+                },
+                scene:{
+                    preload: preload,
+                    create: create,
+                    update: update
+                }
+            }
+
+            var player, cursors, controls, 
+                speedEvent, speedText,
+                speed = 100;
+
+            function preload(){
+                this.load.image('tiles', '../assets/img/drawtiles-spaced.png')
+                this.load.image('car', '../assets/img/car90.png')
+                this.load.tilemapTiledJSON('map', '../assets/tilemap/map.json')
+                this.load.spritesheet('coin', '../assets/img/coin.png', { frameWidth: 32, frameHeight: 32 })
+            }
+
+            function create(){
+
+                var map = this.make.tilemap({ key: 'map' })
+                var tiles =  map.addTilesetImage('drawtiles-spaced', 'tiles');
+                
+                speedText = this.add.text(16, 16, '', {
+                    fontSize: '20px',
+                    fill: '#ffffff'
+                }).setScrollFactor(0).setDepth(10)
+
+
+                // createStaticLayer( layerId, tiles, x , y ) 
+                // 创建一个静态图层 layerId 为 Json 文件 中 layers 对应的 index or key (name 字段)
+                // 地图中创建 静态图层
+                var layer = map.createStaticLayer('floor',tiles, 0, 0)
+                var speedLayer = map.createStaticLayer('speed-tile', tiles, 0, 0)
+                // 创建一个动态图层
+                var mazeLayer = map.createBlankDynamicLayer('mazeLayer', tiles, 0, 0)
+                // var coin = initEndBox.call(this, map, mazeLayer)
+
+                layer.setCollision(3)
+ 
+                // randomize(tileX, tileY, tileW, tileH, tileIndex)
+                //  mazeLayer.randomize(1,1,map.width - 1, map.height - 1, [1,2,3])
+                // 加权随机  这里似乎占用了 大量内存
+                mazeLayer.weightedRandomize(1,1,map.width - 1, map.height - 1, [{ index: 1, weight: 6 }, { index: 2, weight:1 }, { index:3, weight:2 }])
+                mazeLayer.setCollision(3)
+                // 添加 player
+                player = this.physics.add.image(32+16, 32+16, 'car'); // 如果 object 要添加物理引擎， 需要通过 physics 添加, 创建对象具有 body属性
+                player.body.allowGravity = false    // 是否受重力影响
+
+                
+                this.physics.add.collider(player, layer);
+                this.physics.add.collider(player, mazeLayer)
+                this.physics.add.overlap(player, speedLayer);
+                this.physics.add.overlap(player, mazeLayer);
+                
+                // coin.play('xz')
+                // 加速 tile
+                speedLayer.setTileIndexCallback(2, speedUp, this);
+                mazeLayer.setTileIndexCallback(2, speedUp, this)
+
+                // 设置 摄像机 边界
+                this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+                // 摄像机跟随设置
+                this.cameras.main.startFollow(player)
+
+                cursors = this.input.keyboard.createCursorKeys()
+
+                var controlConfig = {
+                    camera: this.cameras.main,
+                    left: cursors.left,
+                    right: cursors.right,
+                    up: cursors.up,
+                    down: cursors.down,
+                    speed: 0.5
+                }
+
+                controls = new Phaser.Cameras.Controls.FixedKeyControl(controlConfig)
+                updateSpeedText()
+            }
+
+            function initEndBox(map, maze){
+                var tileX = Math.ceil(Math.random() * (map.width - 1)),
+                    tileY = Math.ceil(Math.random() * (map.height - 1)),
+                    x = tileX * 34 + 17,
+                    y = tileY * 34 + 17;
+
+                this.anims.create({
+                    key: 'xz',
+                    frames: this.anims.generateFrameNumbers('coin', { start: 0, end: 5 }),
+                    repeat: -1
+                })
+                // maze.setTileLocationCallback(tileX, tileY, 1, 1,function(){
+                //     console.log('success')
+                // }, this)
+                return this.add.sprite(x, y, 'coin')
+            }
+
+            function speedUp(sprite, tile){
+                speed = 300;
+                // 可能存在的内存泄漏点
+                // if(speedEvent) speedEvent.remove(false)
+                // speedEvent = this.time.delayedCall(300, function(){
+                //     speed = 100
+                // }, [], this)
+                
+                return false 
+            }
+
+            function updateSpeedText(){
+                speedText.setText('Speed:' + speed)
+            }
+
+            function update(time, delta){
+                if(cursors.left.isDown){
+                    // player.x -= 2
+                    // 直接改变 对象的x y 属性 无法实现碰撞检测
+                    player.body.setVelocity(-speed,0)
+                    player.angle = 180
+                }else if(cursors.right.isDown){
+                    player.body.setVelocity(+speed,0)
+                    player.angle = 0
+                }else if(cursors.down.isDown){
+                    player.body.setVelocity(0,+speed)
+                    player.angle = 90
+                }else if(cursors.up.isDown){
+                    player.body.setVelocity(0,-speed)
+                    player.angle = -90
+                }else{
+                    player.body.setVelocity(0,0)
+                }
+                updateSpeedText()
+                // controls.update(delta)
+            }
+
+
+            var game = new Phaser.Game(config)
+
+
+        }
+    </script>
+</body>
+</html>

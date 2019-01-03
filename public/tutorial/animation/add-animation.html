@@ -1,0 +1,106 @@
+<html lang="cn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Phaser3 动画</title>
+    <link rel="stylesheet" href="../assets/css/base.css">
+</head>
+<body>
+    <script src="//cdn.jsdelivr.net/npm/phaser/dist/phaser.min.js"></script>
+    <script>
+        window.onload = function(){
+            var config = {
+                type: Phaser.AUTO,
+                width: 800,
+                height: 600,
+                scene: {
+                    preload: preload,
+                    create: create,
+                    update: update
+                }
+            };
+
+            var game = new Phaser.Game(config);
+            
+
+            // 新建一个动画的步骤
+            // 1. 加载一个 动画帧
+            // 2. 使用 this.anims.create 创建一个动画， 定义动画 frames， 以及动画相关的一些属性
+            // 3. 新建一个 sprite ， 并播放创建的动画
+
+            function preload() {
+                // 从 json 中加载动画
+                // this.load.animation('gemData', './data/gems.json')
+                // this.load.atlas('gems', './assets/gems.png' ,'./data/gems_col.json')
+
+                // 帧动画
+                this.load.spritesheet('boom', 'assets/explosion.png', { frameWidth: 64, frameHeight: 64, endFrame: 23 })
+
+            }
+
+            function create() {
+                // this.add.sprite(400, 100, 'gems').play('diamond')
+                // 创建动画
+                this.anims.create({
+                    key: 'explode',
+                    frames: this.anims.generateFrameNumbers('boom', { frames:[0,1,2, 0, 1, 2, 0, 1, 2, 4, 6, 8, 10, 12, 14, 16,18,20,22] }),
+                    showOnStart: false,
+                    //hideOnComplete: true  // 动画结束后隐藏, 并且删除了该sprite对象
+                    // onRepeat: Function   // 动画重复 回调函数
+                });
+
+                this.anims.create({
+                    key: 'explode2',
+                    frames: this.anims.generateFrameNumbers('boom', { start: 0, end: 23 }),
+                    repeat: -1
+                })
+                var boom = this.add.sprite(400, 300, 'boom')
+                var button = this.make.text({
+                    x: 400, y: 300 + 64,  text: '再次播放', style: { fill: '#ffffff' }
+                }).setOrigin(0.5,0.5);
+
+                var removeText = this.make.text({
+                    x: 400, y: 240, text: '点击删除动画', style: { fill: '#ffffff' }
+                }).setOrigin(0.5, 0.5)
+                
+                
+
+
+                var boom2 = this.add.sprite(400, 200, 'boom').play('explode2')
+                
+                // 删除 explode2 动画
+                removeText.setInteractive() // 添加点击事件需要先执行 setInteractive
+                removeText.on('pointerdown', () => {
+                    this.anims.remove('explode2')
+                })
+
+                button.setInteractive()
+                button.on('pointerdown', () => {
+                    boom.play('explode')
+                })
+
+                boom.on('animationcomplete', () => {
+                    console.log('animation complete')
+                    this.tweens.add({
+                        targets: boom,
+                        duration: 1000,
+                        alpha: 0
+                    })
+                })
+
+                
+                // repeat callback
+                boom2.on('animationrepeat', () => {
+                    console.log('repeat')
+                })
+
+            }
+
+            function update(){
+                
+            }
+        }
+    </script>
+</body>
+</html>
